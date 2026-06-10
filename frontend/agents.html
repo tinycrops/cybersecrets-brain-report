@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Agent Briefing — Brain Retention Research</title>
+<style>
+  :root {
+    --bg:      #05080f;
+    --surface: #090e1a;
+    --border:  #1a2540;
+    --accent:  #00d4ff;
+    --pos:     #4ade80;
+    --neg:     #f87171;
+    --peak:    #fbbf24;
+    --text:    #c8d8f0;
+    --muted:   #3a5070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* nav */
+  .top-nav { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+  .top-nav a { font-size: 12px; color: var(--muted); padding: 5px 12px; border: 1px solid var(--border); border-radius: 4px; transition: color .15s, border-color .15s; }
+  .top-nav a:hover, .top-nav a.active { color: var(--accent); border-color: var(--accent); }
+  .top-nav a.active { pointer-events: none; }
+
+  /* page header */
+  .page-header { border-left: 3px solid var(--accent); padding-left: 18px; margin-bottom: 32px; }
+  .page-header .tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .page-header p { color: var(--muted); font-size: 14px; max-width: 640px; line-height: 1.7; }
+
+  /* copy bar */
+  .copy-bar {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 20px; margin-bottom: 32px;
+  }
+  .copy-bar p { font-size: 13px; color: var(--muted); flex: 1; }
+  .copy-btn {
+    background: var(--accent); color: #000; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; padding: 8px 20px; border-radius: 5px;
+    white-space: nowrap; transition: opacity .15s;
+  }
+  .copy-btn:hover { opacity: .85; }
+  .copy-btn.copied { background: var(--pos); }
+
+  /* briefing rendered */
+  .briefing {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 32px 36px;
+    font-size: 14px; line-height: 1.8;
+  }
+  .briefing h2 {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin: 32px 0 12px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .briefing h2:first-child { margin-top: 0; }
+  .briefing h3 { font-size: 14px; color: #fff; font-weight: 600; margin: 20px 0 6px; }
+  .briefing p { color: var(--text); margin-bottom: 10px; }
+  .briefing ul { padding-left: 20px; margin-bottom: 10px; }
+  .briefing li { color: var(--text); margin-bottom: 4px; }
+  .briefing code {
+    background: #0f1929; color: var(--accent); padding: 1px 6px;
+    border-radius: 3px; font-size: 12px; font-family: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  .briefing pre {
+    background: #0a1220; border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; margin: 10px 0 16px; overflow-x: auto;
+  }
+  .briefing pre code {
+    background: none; color: #8bb8d8; font-size: 12px; padding: 0;
+  }
+  .briefing .num-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0;
+  }
+  .briefing .num-card {
+    background: #0a1220; border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .briefing .num-card .val { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .briefing .num-card .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .briefing table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0 16px; }
+  .briefing th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .briefing td { padding: 7px 10px; border-bottom: 1px solid #0f1929; }
+  .briefing tr:last-child td { border-bottom: none; }
+  .pos { color: var(--pos); }
+  .neg { color: var(--neg); }
+  .peak-val { color: var(--peak); font-weight: 700; }
+
+  /* hidden textarea for clipboard */
+  #briefing-raw { position: absolute; left: -9999px; top: 0; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="top-nav">
+    <a href="index.html">Overview</a>
+    <a href="probe.html">Brain Probe</a>
+    <a href="iterate.html">Iteration Loop</a>
+    <a href="agents.html" class="active">Agent Briefing</a>
+  </nav>
+
+  <div class="page-header">
+    <div class="tag">agent briefing · copy &amp; paste to any AI</div>
+    <h1>Get any agent up to speed in 30 seconds</h1>
+    <p>Everything below is what a collaborating AI needs to understand this research, continue experiments, and avoid re-deriving things we've already measured. Hit copy, paste into your agent.</p>
+  </div>
+
+  <div class="copy-bar">
+    <p>Plain-text briefing — paste into Claude, GPT, Gemini, or any other agent to continue this research thread.</p>
+    <button class="copy-btn" id="copy-btn" onclick="copyBriefing()">Copy briefing</button>
+  </div>
+
+  <div class="briefing">
+
+    <h2>What this research is</h2>
+    <p>We are running a systematic experiment to find out what predicts whether TikTok viewers stay or leave, as measured by <strong>brain response</strong> rather than editorial intuition. The channel under study is <strong>@thecybersecrets</strong> (cybersecurity content, short-form TikTok).</p>
+    <p>The core tool is <strong>TRIBE v2</strong> (Meta FAIR, 2026) — a video brain-encoding model that predicts whole-brain fMRI BOLD responses, second-by-second, for any video. Output shape: <code>(T, 20484)</code> float32 cortical vertices per video at 1 TR/second. We map vertices to named brain regions via the <strong>Destrieux surface atlas</strong> (nilearn).</p>
+    <p>We cross-reference these predictions with <strong>per-second audience retention curves</strong> from TikTok Creator Analytics for the same videos.</p>
+
+    <h2>Infrastructure</h2>
+    <ul>
+      <li><strong>ath-ms-7a72</strong> — Quadro P4000 8GB, 31GB RAM. Runs TRIBE v2 inference. Python 3.12 venv at <code>~/tribe-local/.venv</code>, Torch 2.6.0+cu124.</li>
+      <li><strong>lil-blue</strong> — GTX 1060 3GB. Runs Parakeet TDT 0.6B ASR (transcription). Host alias <code>lil-blue</code>.</li>
+      <li><strong>ath-MS-7A73</strong> (localhost) — GTX 1060 6GB. Development, analysis, ComfyUI img2img (port 8188, DreamShaper 8).</li>
+      <li>All scripts live at <code>/media/ath/video/tribe-local/scripts/</code>. Outputs at <code>/media/ath/video/tribe-local/outputs/</code>.</li>
+    </ul>
+
+    <h2>Current sweep status</h2>
+    <div class="num-row">
+      <div class="num-card"><div class="val">112</div><div class="lbl">videos scored</div></div>
+      <div class="num-card"><div class="val">696</div><div class="lbl">total videos</div></div>
+      <div class="num-card"><div class="val">~400h</div><div class="lbl">ETA at ~50s/TR</div></div>
+    </div>
+    <p>Sweep runs continuously on 7a72. Check progress: <code>tail -20 outputs/sweep_cybersecrets_run.log</code>. State: <code>outputs/sweep_cybersecrets/state.json</code>. Per-video predictions: <code>outputs/sweep_cybersecrets/npy/*.npy</code>.</p>
+    <p>Resume if stopped:</p>
+    <pre><code>nohup python3 scripts/sweep_cybersecrets.py --cap 60 --no-rsync \
+  > outputs/sweep_cybersecrets_run.log 2>&1 &</code></pre>
+
+    <h2>Key findings (first 112 videos, short clips 4–13s)</h2>
+    <p>Comparing top 25% vs bottom 25% by audience completion rate:</p>
+    <table>
+      <tr><th>Brain region</th><th>High-completion</th><th>Low-completion</th><th>Gap</th><th>Meaning</th></tr>
+      <tr><td>Face area (FFA)</td><td class="pos">+0.280</td><td>+0.185</td><td class="pos">+51%</td><td>Face on screen is the strongest single predictor</td></tr>
+      <tr><td>Motion (MT+)</td><td class="pos">+0.312</td><td>+0.226</td><td class="pos">+38%</td><td>Dynamic visuals — movement, demos, scrolling terminals</td></tr>
+      <tr><td>Speech (STS)</td><td class="pos">+0.169</td><td>+0.094</td><td class="pos">+80%</td><td>Audio/visual alignment — talking while showing matters</td></tr>
+      <tr><td>DMN (mind-wandering)</td><td>−0.089</td><td>−0.090</td><td class="neg">≈0</td><td>Losing viewers is not boredom — it's failing to engage</td></tr>
+      <tr><td>Scene/place (PPA)</td><td>−0.004</td><td>−0.010</td><td class="neg">≈0</td><td>Background and environment don't matter</td></tr>
+    </table>
+    <p><strong>Composite score</strong> = FFA + MT+ + STS. Used as a single-number quality proxy throughout all experiments.</p>
+    <p><strong>Notable outlier:</strong> video <code>7556715516782497037</code> scores FFA=0.48, MT+=0.49 (top of dataset) but only 6% audience completion. Hypothesis: the content is brain-engaging but the hook in the first 0.5s doesn't signal the payoff. TRIBE scores content quality, not the first impression.</p>
+
+    <h2>Experiment 1 — Brain Probe (completed)</h2>
+    <p>Question: Can a diffusion model — guided by a whiteboard/diagram prompt — produce images TRIBE scores higher than the source frame?</p>
+    <p>Method: extract peak-activation second from top-3 composite videos → ComfyUI img2img (DreamShaper 8, denoise=0.55, 25 steps) → loop into 6s video → TRIBE score → compare delta.</p>
+    <table>
+      <tr><th>Video</th><th>Source type</th><th>Orig composite</th><th>Gen composite</th><th>Δ composite</th></tr>
+      <tr><td>A — 7556715516782497037</td><td>Cluttered phone screenshot</td><td class="neg">−0.352</td><td class="pos">+0.044</td><td class="pos">+0.397</td></tr>
+      <tr><td>B — 7600984382559505695</td><td>Clean whiteboard diagram</td><td class="pos">+0.351</td><td class="pos">+0.416</td><td class="pos">+0.065</td></tr>
+      <tr><td>C — 7559991058684300574</td><td>Dark blurry floor shot</td><td class="neg">−0.046</td><td class="pos">+0.504</td><td class="pos">+0.550</td></tr>
+    </table>
+    <p><strong>Key finding:</strong> delta is <em>inversely proportional</em> to how readable the source frame already was. The whiteboard/diagram prompt acts as a gradient toward what TRIBE predicts FFA/MT+ want. FFA and MT+ both lifted in all three cases. STS didn't move (no speech in a still-image loop — expected). Script: <code>scripts/brain_probe_pipeline.py</code>. Results: <code>outputs/brain_probe/probe_results.json</code>.</p>
+
+    <h2>Experiment 2 — Iteration Loop (completed)</h2>
+    <p>Question: If you chain img2img (each output feeds the next input), does the brain score keep climbing over 4 iterations?</p>
+    <table>
+      <tr><th>Step</th><th>Video A composite</th><th>Video C composite</th></tr>
+      <tr><td>Source (iter 0)</td><td class="neg">−0.352</td><td class="neg">−0.046</td></tr>
+      <tr><td>Iteration 1</td><td class="neg">−0.239</td><td class="pos">+0.360</td></tr>
+      <tr><td>Iteration 2</td><td class="neg">−0.150</td><td class="peak-val">+0.427 ★</td></tr>
+      <tr><td>Iteration 3</td><td class="neg">−0.207</td><td class="pos">+0.329</td></tr>
+      <tr><td>Iteration 4</td><td class="neg">−0.139</td><td class="pos">+0.173</td></tr>
+    </table>
+    <p><strong>Key finding:</strong> neither trajectory is monotone. Video C peaks at iter 2 then decays — the high-activation configuration is <em>unstable</em> under further diffusion. Blind chaining is not a reliable optimizer. The implication is <strong>beam search</strong>: generate several candidates per step, score all, keep the best.</p>
+    <p>Script: <code>scripts/brain_probe_iterate.py</code>. Results: <code>outputs/brain_probe/iter_results.json</code>.</p>
+
+    <h2>Active work — Target-directed iteration (in progress)</h2>
+    <p>The iterate loop currently hill-climbs on raw composite (scalar). We are upgrading it to <strong>vector-directed optimization</strong> toward a target activation profile from a better-performing channel (<strong>@davidbombal</strong>, cybersecurity/networking, ~350K followers).</p>
+    <p>Pipeline:</p>
+    <ul>
+      <li><strong>Step 1 (running now):</strong> <code>scripts/sweep_target_channel.py --handle davidbombal --n 25 --cap 60</code> — downloads and TRIBE-scores 6 davidbombal videos (most content is &gt;60s). Log: <code>outputs/sweep_davidbombal_run.log</code>.</li>
+      <li><strong>Step 2 (after sweep):</strong> <code>scripts/build_target_profile.py --handle davidbombal</code> — computes mean FG vector from top 50% by composite → saves <code>outputs/target_profiles/davidbombal.json</code>.</li>
+      <li><strong>Step 3:</strong> <code>scripts/brain_probe_iterate.py --all --iters 4 --target-profile outputs/target_profiles/davidbombal.json</code> — runs the directed iterate loop; reports both composite score and cosine similarity / L2 distance to target at each step.</li>
+    </ul>
+    <p>Scoring change: replaces <code>composite = FFA + MT+ + STS</code> with <code>cosine_similarity(fg_vector, target_fg_vector)</code> across all 12 functional groups. Both metrics are reported. Functions are in <code>brain_probe_iterate.py</code>: <code>score_toward_target(fg, target_fg)</code> returns <code>(cos_sim, l2_dist)</code>.</p>
+
+    <h2>Key scripts reference</h2>
+    <table>
+      <tr><th>Script</th><th>What it does</th></tr>
+      <tr><td><code>sweep_cybersecrets.py</code></td><td>Main sweep — incremental, recoverable, SIGINT-safe. Pass <code>--cap 60 --no-rsync</code> to resume.</td></tr>
+      <tr><td><code>analyze_retention.py</code></td><td>Group comparison, length stratification. Run with <code>--min-done 50</code>. Outputs <code>retention_analysis.json</code>.</td></tr>
+      <tr><td><code>brain_probe_pipeline.py</code></td><td>Single-step: peak frame → ComfyUI → TRIBE → delta. Outputs <code>probe_results.json</code>.</td></tr>
+      <tr><td><code>brain_probe_iterate.py</code></td><td>Chained loop. Args: <code>--video ID</code>, <code>--all</code>, <code>--iters N</code>, <code>--target-profile path</code>.</td></tr>
+      <tr><td><code>sweep_target_channel.py</code></td><td>Download + TRIBE-sweep any TikTok handle. Args: <code>--handle</code>, <code>--n</code>, <code>--cap</code>.</td></tr>
+      <tr><td><code>build_target_profile.py</code></td><td>Build mean FG target vector from sweep output. Args: <code>--handle</code>, <code>--top-frac</code>.</td></tr>
+      <tr><td><code>run_local_demo.py</code></td><td>Single-video TRIBE inference on 7a72. Used internally by all sweep scripts via SSH.</td></tr>
+    </table>
+
+    <h2>Functional groups (12 regions)</h2>
+    <p>The Destrieux atlas's 20,484 vertices are aggregated into these groups. All scripts use the same mapping.</p>
+    <pre><code>face_ffa       G_oc-temp_lat-fusifor (fusiform face area)
+motion_mt      G_and_S_occipital_inf, S_oc-temp_med_and_Lingual, S_oc_middle_and_Lunatus
+language_sts   S_temporal_sup, G_temp_sup-Lateral, G_temp_sup-Plan_tempo
+visual_early   G_and_S_calcarine, G_cuneus, S_calcarine
+visual_ventral G_oc-temp_med-Lingual, G_oc-temp_lat-fusifor, G_oc-temp_med-Parahip
+visual_dorsal  G_occipital_sup, G_pariet_inf-Supramar, G_pariet_inf-Angular
+place_ppa      G_oc-temp_med-Parahip, G_parahippocampal
+auditory       G_temp_sup-G_T_transv, G_temp_sup-Plan_polar
+dmn_precuneus  G_precuneus, S_subpariet_and_P_trans
+dmn_mpfc       G_front_medial, G_front_sup
+attention      G_pariet_inf-Angular, G_pariet_inf-Supramar, G_front_middle
+broca_language G_front_inf-Triangul, G_front_inf-Opercular</code></pre>
+
+    <h2>Caveats to carry forward</h2>
+    <ul>
+      <li>TRIBE predicts the <em>average</em> brain across 25 training subjects — not any individual viewer.</li>
+      <li>Still-image loops suppress MT+ (no optical flow) and STS (no speech). Compare <em>deltas</em>, not absolute scores, in probe/iterate experiments.</li>
+      <li>Current findings are from short clips (4–13s). Length confound is controlled by within-bin comparison.</li>
+      <li>Tier 2 analysis (within-video: what brain region activates 5s before a viewer drops off) needs &gt;20s clips — unlocks as the sweep reaches longer videos.</li>
+      <li>Hemodynamic lag is 5s. TRIBE scores content quality with a 5s lag baked in — it doesn't score the first impression or hook.</li>
+      <li>denoise=0.55 in ComfyUI retains ~45% of source structure. Higher denoise → bigger delta, less faithfulness.</li>
+    </ul>
+
+    <h2>Published pages</h2>
+    <ul>
+      <li><a href="index.html">Overview + findings</a> — <code>index.html</code></li>
+      <li><a href="probe.html">Brain Probe experiment</a> — <code>probe.html</code></li>
+      <li><a href="iterate.html">Iteration Loop experiment</a> — <code>iterate.html</code></li>
+    </ul>
+
+  </div><!-- end .briefing -->
+
+</div><!-- end .wrap -->
+
+<textarea id="briefing-raw" aria-hidden="true">RESEARCH BRIEFING — thecybersecrets Brain Retention Study
+Generated: June 2026
+=============================================================
+
+WHAT THIS RESEARCH IS
+----------------------
+Systematic experiment: what predicts TikTok viewer retention, measured by brain response (not editorial intuition).
+Channel under study: @thecybersecrets (cybersecurity, short-form TikTok, 696 videos with retention data).
+
+Core tool: TRIBE v2 (Meta FAIR, 2026) — video brain-encoding model. Predicts whole-brain fMRI BOLD responses
+second-by-second for any video. Output: (T, 20484) float32 cortical vertices at 1 TR/second.
+Vertices mapped to 12 named brain regions via Destrieux surface atlas (nilearn).
+Cross-referenced with per-second audience retention curves from TikTok Creator Analytics.
+
+INFRASTRUCTURE
+--------------
+- ath-ms-7a72: Quadro P4000 8GB, 31GB RAM. TRIBE v2 inference. Python 3.12 venv at ~/tribe-local/.venv, Torch 2.6.0+cu124.
+- lil-blue: GTX 1060 3GB. Parakeet TDT 0.6B ASR (transcription). Host alias: lil-blue.
+- ath-MS-7A73 (localhost): GTX 1060 6GB. Dev, analysis, ComfyUI img2img (port 8188, DreamShaper 8).
+- Scripts: /media/ath/video/tribe-local/scripts/
+- Outputs: /media/ath/video/tribe-local/outputs/
+
+CURRENT SWEEP STATUS
+--------------------
+112 / 696 videos scored. Full dataset ETA ~400h at ~50s/TR throughput on 7a72.
+Check: tail -20 outputs/sweep_cybersecrets_run.log
+State: outputs/sweep_cybersecrets/state.json
+Predictions: outputs/sweep_cybersecrets/npy/*.npy
+Resume: nohup python3 scripts/sweep_cybersecrets.py --cap 60 --no-rsync > outputs/sweep_cybersecrets_run.log 2>&1 &
+
+KEY FINDINGS (first 112 videos, 4-13s clips)
+---------------------------------------------
+Comparing top 25% vs bottom 25% by audience completion rate:
+
+  Face area (FFA):   high=+0.280, low=+0.185  → +51% gap  (strongest predictor — face on screen)
+  Motion (MT+):      high=+0.312, low=+0.226  → +38% gap  (demos, movement, scrolling terminals)
+  Speech (STS):      high=+0.169, low=+0.094  → +80% gap  (talking while showing relevant content)
+  DMN (mind-wander): high=−0.089, low=−0.090  → ≈0 gap    (losing viewers ≠ boredom)
+  Scene/place (PPA): high=−0.004, low=−0.010  → ≈0 gap    (background doesn't matter)
+
+Composite score = FFA + MT+ + STS. Used as single-number quality proxy throughout.
+
+Notable outlier: video 7556715516782497037 scores FFA=0.48, MT+=0.49 (top of dataset) but 6% audience completion.
+Hypothesis: great content quality, bad hook. TRIBE scores the stimulus, not the first 0.5s impression.
+
+EXPERIMENT 1 — BRAIN PROBE (COMPLETED)
+---------------------------------------
+Question: Can diffusion (whiteboard/diagram prompt) produce images TRIBE scores higher than source?
+Method: peak frame from top-3 composite videos → ComfyUI img2img (DreamShaper 8, denoise=0.55, 25 steps)
+        → loop into 6s video → TRIBE score → compare delta.
+
+Results:
+  Video A (7556715516782497037) — cluttered phone screenshot:  orig=−0.352, gen=+0.044, Δ=+0.397
+  Video B (7600984382559505695) — clean whiteboard diagram:    orig=+0.351, gen=+0.416, Δ=+0.065
+  Video C (7559991058684300574) — dark blurry floor shot:      orig=−0.046, gen=+0.504, Δ=+0.550
+
+Key finding: delta is inversely proportional to how readable the source frame already was.
+The whiteboard/diagram prompt acts as a gradient toward what TRIBE predicts FFA/MT+ want.
+FFA and MT+ lifted in all cases. STS didn't move (no speech in still-image loop — expected).
+Script: scripts/brain_probe_pipeline.py | Results: outputs/brain_probe/probe_results.json
+
+EXPERIMENT 2 — ITERATION LOOP (COMPLETED)
+-------------------------------------------
+Question: Does chaining img2img 4× (output feeds next input) monotonically improve brain score?
+
+Trajectories (composite = FFA + MT+ + STS):
+  Step          Video A    Video C
+  Source (0):   −0.352     −0.046
+  Iteration 1:  −0.239     +0.360
+  Iteration 2:  −0.150     +0.427  ← peak
+  Iteration 3:  −0.207     +0.329
+  Iteration 4:  −0.139     +0.173
+
+Key finding: neither trajectory is monotone. Video C peaks at iter 2 then decays.
+The high-activation configuration is UNSTABLE under further diffusion.
+Implication: beam search (generate multiple candidates per step, score all, keep best) is the right move.
+Script: scripts/brain_probe_iterate.py | Results: outputs/brain_probe/iter_results.json
+
+ACTIVE WORK — TARGET-DIRECTED ITERATION (IN PROGRESS)
+------------------------------------------------------
+Upgrading the iterate loop from scalar hill-climbing to vector-directed optimization.
+Target channel: @davidbombal (cybersecurity/networking TikTok, ~350K followers, similar content style).
+
+Pipeline:
+  1. sweep_target_channel.py --handle davidbombal --n 25 --cap 60
+     → downloads + TRIBE-scores target channel videos
+     → outputs/sweep_davidbombal/npy/*.npy
+     → Log: outputs/sweep_davidbombal_run.log (RUNNING NOW)
+
+  2. build_target_profile.py --handle davidbombal
+     → computes mean FG vector from top 50% by composite
+     → outputs/target_profiles/davidbombal.json
+
+  3. brain_probe_iterate.py --all --iters 4 --target-profile outputs/target_profiles/davidbombal.json
+     → reports composite AND cosine_similarity(fg, target_fg) AND l2_distance at each step
+
+Scoring change: replaces composite with cosine_similarity across all 12 FG dimensions.
+Both metrics reported. Function: score_toward_target(fg, target_fg) → (cos_sim, l2_dist)
+
+KEY SCRIPTS
+-----------
+sweep_cybersecrets.py     Main sweep — incremental, recoverable, SIGINT-safe
+analyze_retention.py      Group comparison + stratification. Use --min-done 50
+brain_probe_pipeline.py   Peak frame → ComfyUI → TRIBE → delta (single step)
+brain_probe_iterate.py    Chained loop. Args: --video ID | --all | --iters N | --target-profile path
+sweep_target_channel.py   Download + TRIBE-sweep any TikTok handle
+build_target_profile.py   Build mean FG target vector. Args: --handle, --top-frac
+run_local_demo.py         Single-video TRIBE inference on 7a72 (called via SSH by sweep scripts)
+
+FUNCTIONAL GROUPS (12 REGIONS)
+-------------------------------
+face_ffa:       G_oc-temp_lat-fusifor
+motion_mt:      G_and_S_occipital_inf, S_oc-temp_med_and_Lingual, S_oc_middle_and_Lunatus
+language_sts:   S_temporal_sup, G_temp_sup-Lateral, G_temp_sup-Plan_tempo
+visual_early:   G_and_S_calcarine, G_cuneus, S_calcarine
+visual_ventral: G_oc-temp_med-Lingual, G_oc-temp_lat-fusifor, G_oc-temp_med-Parahip
+visual_dorsal:  G_occipital_sup, G_pariet_inf-Supramar, G_pariet_inf-Angular
+place_ppa:      G_oc-temp_med-Parahip, G_parahippocampal
+auditory:       G_temp_sup-G_T_transv, G_temp_sup-Plan_polar
+dmn_precuneus:  G_precuneus, S_subpariet_and_P_trans
+dmn_mpfc:       G_front_medial, G_front_sup
+attention:      G_pariet_inf-Angular, G_pariet_inf-Supramar, G_front_middle
+broca_language: G_front_inf-Triangul, G_front_inf-Opercular
+
+CAVEATS
+-------
+- TRIBE predicts average brain across 25 training subjects — not any individual viewer.
+- Still-image loops suppress MT+ (no optical flow) and STS (no speech). Compare deltas, not absolutes.
+- Current findings from short clips (4–13s). Length confound controlled by within-bin comparison.
+- Tier 2 (within-video drop-off correlation) needs >20s clips — unlocks as sweep progresses.
+- Hemodynamic lag 5s — TRIBE scores content quality not first impression / hook.
+- ComfyUI denoise=0.55 retains ~45% source structure. Higher denoise → bigger delta, less faithful.
+
+PUBLISHED PAGES
+---------------
+https://tinycrops.github.io/cybersecrets-brain-report/          Overview + findings
+https://tinycrops.github.io/cybersecrets-brain-report/probe.html    Brain Probe experiment
+https://tinycrops.github.io/cybersecrets-brain-report/iterate.html  Iteration Loop experiment
+https://tinycrops.github.io/cybersecrets-brain-report/agents.html   This briefing
+</textarea>
+
+<script>
+function copyBriefing() {
+  const ta = document.getElementById('briefing-raw');
+  ta.style.position = 'fixed';
+  ta.style.left = '0';
+  ta.select();
+  const ok = document.execCommand('copy');
+  ta.style.position = 'absolute';
+  ta.style.left = '-9999px';
+  if (!ok) {
+    navigator.clipboard.writeText(ta.value).catch(() => {});
+  }
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = 'Copy briefing';
+    btn.classList.remove('copied');
+  }, 2000);
+}
+</script>
+
+</body>
+</html>

@@ -144,6 +144,19 @@
   .action .body .title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 5px; }
   .action .body .detail { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
+  /* ── nav ── */
+  .top-nav {
+    display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .top-nav a {
+    font-size: 12px; color: var(--muted); padding: 5px 12px;
+    border: 1px solid var(--border); border-radius: 4px;
+    transition: color .15s, border-color .15s;
+    text-decoration: none;
+  }
+  .top-nav a:hover, .top-nav a.active { color: var(--accent); border-color: var(--accent); }
+  .top-nav a.active { pointer-events: none; }
+
   /* ── footer ── */
   footer {
     border-top: 1px solid var(--border);
@@ -170,6 +183,12 @@
 </head>
 <body>
 <div class="page">
+
+  <nav class="top-nav">
+    <a href="index.html" class="active">Overview</a>
+    <a href="probe.html">Brain Probe</a>
+    <a href="iterate.html">Iteration Loop</a>
+  </nav>
 
   <header>
     <div class="tag">thecybersecrets · brain retention report</div>
@@ -325,6 +344,31 @@
           <div class="detail">Scene recognition (PPA) is flat — your background doesn't help. Motion detection (MT+) is the second-strongest signal. Hands moving, terminals scrolling, cursor moving, face gesturing — kinetic content keeps the visual system active.</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── further experiments ── -->
+  <section>
+    <div class="section-title">further experiments</div>
+    <div class="cards">
+      <a href="probe.html" style="text-decoration:none">
+        <div class="card" style="height:100%; cursor:pointer; transition: border-color .2s"
+             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div class="emoji">🧪</div>
+          <div class="label" style="font-size:16px; margin-bottom:8px">Brain Probe — Can diffusion lift your brain score?</div>
+          <div class="desc">We took the three highest-scoring frames from your videos and fed them through a diffusion model with a whiteboard/diagram prompt. TRIBE scored both the original and the generated frame. The gap tells you how much visual work each frame still has to do.</div>
+          <div style="margin-top:14px; font-size:12px; color:var(--accent)">View experiment →</div>
+        </div>
+      </a>
+      <a href="iterate.html" style="text-decoration:none">
+        <div class="card" style="height:100%; cursor:pointer; transition: border-color .2s"
+             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div class="emoji">🔁</div>
+          <div class="label" style="font-size:16px; margin-bottom:8px">Iteration Loop — Does repeating diffusion keep climbing?</div>
+          <div class="desc">Feed a frame through diffusion → score it → feed the output back in → repeat four times. Does the brain score keep rising, plateau, or reverse? Video C peaks at iteration 2 then decays — not a monotone optimizer.</div>
+          <div style="margin-top:14px; font-size:12px; color:var(--accent)">View experiment →</div>
+        </div>
+      </a>
     </div>
   </section>
 

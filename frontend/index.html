@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>thecybersecrets — Brain Retention Report</title>
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #111820;
+    --border: #1e2d3d;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff7f;
+    --text: #cdd9e5;
+    --muted: #546e7a;
+    --high: #00e5ff;
+    --low: #ff4757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── layout ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* ── header ── */
+  header {
+    border-left: 3px solid var(--accent);
+    padding-left: 18px;
+    margin-bottom: 48px;
+  }
+  header .tag {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin-bottom: 8px;
+  }
+  header h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  header p { color: var(--muted); font-size: 14px; }
+
+  /* ── section ── */
+  section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── cards ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 20px;
+  }
+  .card.highlight { border-color: var(--accent); }
+  .card .emoji { font-size: 28px; margin-bottom: 10px; }
+  .card .metric {
+    font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .metric.orange { color: var(--accent2); }
+  .card .metric.green { color: var(--accent3); }
+  .card .label { font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 6px; }
+  .card .desc { font-size: 13px; color: var(--muted); }
+
+  /* ── bar chart ── */
+  .bars { display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: flex; flex-direction: column; gap: 4px; }
+  .bar-label { font-size: 12px; color: var(--text); display: flex; justify-content: space-between; }
+  .bar-label .name { color: #fff; }
+  .bar-track { background: var(--border); border-radius: 3px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+  .bar-fill.high { background: var(--high); }
+  .bar-fill.low { background: var(--low); opacity: 0.7; }
+  .bar-diff {
+    font-size: 11px; color: var(--accent3); font-weight: 600;
+  }
+  .bar-row .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  /* ── table ── */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border);
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+  td.vid-id { font-family: monospace; font-size: 11px; color: var(--muted); }
+  td.vid-id a { color: var(--accent); }
+  .badge {
+    display: inline-block; padding: 2px 7px; border-radius: 3px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge.top { background: rgba(0,229,255,0.12); color: var(--accent); }
+  .badge.bot { background: rgba(255,71,87,0.12); color: var(--low); }
+
+  /* score bar inline */
+  .score-bar {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .score-pip {
+    display: inline-block; height: 6px; border-radius: 2px;
+    background: var(--accent); min-width: 2px;
+  }
+  .score-pip.neg { background: var(--low); }
+  .score-num { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ── callout ── */
+  .callout {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px; padding: 20px 22px;
+  }
+  .callout .callout-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent2); margin-bottom: 8px;
+  }
+  .callout p { font-size: 14px; line-height: 1.7; }
+  .callout p + p { margin-top: 10px; }
+
+  /* ── action list ── */
+  .actions { display: flex; flex-direction: column; gap: 14px; }
+  .action {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .action .num {
+    font-size: 22px; font-weight: 800; color: var(--accent);
+    min-width: 32px; line-height: 1;
+  }
+  .action .body .title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+  .action .body .detail { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 60px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  footer code {
+    background: var(--surface); padding: 1px 5px; border-radius: 3px;
+    font-size: 11px; color: var(--text);
+  }
+
+  /* ── blinking cursor ── */
+  @keyframes blink { 50% { opacity: 0; } }
+  .cursor { animation: blink 1s step-end infinite; }
+
+  /* ── legend ── */
+  .legend { display: flex; gap: 18px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="tag">thecybersecrets · brain retention report</div>
+    <h1>Why viewers stay (or don't)<span class="cursor">_</span></h1>
+    <p>99 of your TikToks fed through Meta's TRIBE v2 brain-response model · June 2026</p>
+  </header>
+
+  <!-- ── what is this ── -->
+  <section>
+    <div class="section-title">what we did</div>
+    <div class="callout">
+      <div class="callout-title">The setup</div>
+      <p>We ran 99 of your TikToks through <strong>TRIBE v2</strong> — a model from Meta FAIR that predicts, second-by-second, which parts of a viewer's brain activate while watching a video. It's trained on thousands of hours of brain scans (fMRI) paired with video stimuli.</p>
+      <p>Then we compared the brain predictions against your real per-second audience-retention data and asked: what's different in videos where people stay vs videos where they leave after the first few seconds?</p>
+    </div>
+  </section>
+
+  <!-- ── 3 headline findings ── -->
+  <section>
+    <div class="section-title">3 things that predict if people stay</div>
+    <div class="cards" id="headline-cards">
+      <div class="card highlight">
+        <div class="emoji">👁️</div>
+        <div class="metric" id="face-lift">+51%</div>
+        <div class="label">Face in frame</div>
+        <div class="desc">High-completion videos light up the face-recognition area (FFA) significantly more. Brains are hardwired to lock onto faces — yours on screen is an anchor.</div>
+      </div>
+      <div class="card">
+        <div class="emoji">⚡</div>
+        <div class="metric orange" id="motion-lift">+38%</div>
+        <div class="label">Visual motion</div>
+        <div class="desc">The motion-detection area (MT+) fires 38% higher in your best-retained videos. Demos, fast hands, screen recordings with movement — all of this matters.</div>
+      </div>
+      <div class="card">
+        <div class="emoji">🎙️</div>
+        <div class="metric green" id="speech-lift">+80%</div>
+        <div class="label">Speech that lands</div>
+        <div class="desc">The speech-processing area (STS) shows the biggest relative gap. Not just talking — talking while something relevant is happening on screen is what keeps it active.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── bar chart ── -->
+  <section>
+    <div class="section-title">brain region breakdown — high vs low completion</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div> High-completion videos (top 25%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--low); opacity:.7"></div> Low-completion videos (bottom 25%)</div>
+    </div>
+    <div class="bars" id="bars-container"></div>
+  </section>
+
+  <!-- ── top videos ── -->
+  <section>
+    <div class="section-title">your best-retained videos</div>
+    <div class="tbl-wrap">
+      <table id="top-table">
+        <thead>
+          <tr>
+            <th>Video ID</th>
+            <th>Length</th>
+            <th>Completion</th>
+            <th>Face</th>
+            <th>Motion</th>
+            <th>Speech</th>
+            <th>Likes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── bottom videos ── -->
+  <section>
+    <div class="section-title">hardest to retain</div>
+    <div class="tbl-wrap">
+      <table id="bot-table">
+        <thead>
+          <tr>
+            <th>Video ID</th>
+            <th>Length</th>
+            <th>Completion</th>
+            <th>Face</th>
+            <th>Motion</th>
+            <th>Speech</th>
+            <th>Likes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── anomaly ── -->
+  <section>
+    <div class="section-title">the outlier worth studying</div>
+    <div class="callout">
+      <div class="callout-title">High brain score, low retention: what's going on?</div>
+      <p>Video <code><a href="https://www.tiktok.com/@thecybersecrets/video/7556715516782497037" target="_blank">7556715516782497037</a></code> scores extremely high on both face (0.48) and motion (0.49) — by the model's logic, the content itself is deeply engaging. But only <strong>6% of viewers made it to the end</strong>.</p>
+      <p>This is a signal that the hook in the first 1–2 seconds isn't matching the brain-engagement the rest of the video could deliver. The model doesn't score the first impression — it scores the stimulus content. If viewers leave before they see it, the brain score doesn't help. Look at this video's opening frame: does it clearly signal what the payoff is?</p>
+    </div>
+  </section>
+
+  <!-- ── what doesn't matter ── -->
+  <section>
+    <div class="section-title">what doesn't predict retention</div>
+    <div class="cards">
+      <div class="card">
+        <div class="emoji">🧠</div>
+        <div class="metric" style="font-size:28px; color: var(--muted)">≈ 0</div>
+        <div class="label">Mind-wandering (DMN)</div>
+        <div class="desc">The default-mode network — associated with mind-wandering — shows essentially zero difference between high and low retention. Losing viewers isn't about boring them into daydreaming. It's about failing to engage the right circuits fast enough.</div>
+      </div>
+      <div class="card">
+        <div class="emoji">🌍</div>
+        <div class="metric" style="font-size:28px; color: var(--muted)">≈ 0</div>
+        <div class="label">Scene recognition (PPA)</div>
+        <div class="desc">The place/scene area shows no gap. Your backdrop, your room, your environment — viewers don't care. What's in motion and who's speaking matters; where you're standing doesn't.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── action items ── -->
+  <section>
+    <div class="section-title">what to do with this</div>
+    <div class="actions">
+      <div class="action">
+        <div class="num">1</div>
+        <div class="body">
+          <div class="title">Put your face in the first frame, every time</div>
+          <div class="detail">The face area (FFA) is the single strongest predictor. If your thumbnail or first 0.5s shows a screen, text, or keyboard — you're burning the biggest engagement signal before it can fire. Open with your face.</div>
+        </div>
+      </div>
+      <div class="action">
+        <div class="num">2</div>
+        <div class="body">
+          <div class="title">Demo and talk simultaneously</div>
+          <div class="detail">The strongest videos hit face + motion + speech at the same time. Talking to camera while showing a screen demo, typing while narrating, or reacting while demonstrating — this combo keeps three brain systems firing in parallel.</div>
+        </div>
+      </div>
+      <div class="action">
+        <div class="num">3</div>
+        <div class="body">
+          <div class="title">Match what you're saying to what's on screen</div>
+          <div class="detail">The STS (speech-processing) gap is the biggest in relative terms (+80%). This area responds when audio and visual information make sense together. Cut aways, stock footage, or unrelated b-roll while you narrate will drop this signal.</div>
+        </div>
+      </div>
+      <div class="action">
+        <div class="num">4</div>
+        <div class="body">
+          <div class="title">Don't decorate, demonstrate</div>
+          <div class="detail">Scene recognition (PPA) is flat — your background doesn't help. Motion detection (MT+) is the second-strongest signal. Hands moving, terminals scrolling, cursor moving, face gesturing — kinetic content keeps the visual system active.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── methodology note ── -->
+  <section>
+    <div class="section-title">methodology &amp; caveats</div>
+    <div class="callout" style="border-left-color: var(--muted)">
+      <div class="callout-title" style="color: var(--muted)">What this is and isn't</div>
+      <p><strong>TRIBE v2</strong> predicts the average brain's response to a video stimulus — it's an encoding model trained on 1,117 hours of fMRI data across 25 subjects. It's not measuring your specific viewers' brains; it's predicting what a typical human brain would do watching this content.</p>
+      <p>These results are from <strong>99 short videos (4–13s)</strong>, the first pass of a full 696-video sweep that's still running. Short videos over-represent completion since there's less time to drop off. The per-second drop-off analysis (correlating exactly which brain region is active the moment someone leaves) will be available once longer video processing finishes.</p>
+      <p>The model uses a 5-second hemodynamic lag — brain responses peak ~5s after the stimulus. Scores reflect the content quality of the video, not the hook in the first 0.5s. That's why the outlier above is instructive.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Analysis: <code>TRIBE v2</code> (Meta FAIR, 2026) · Brain atlas: Destrieux 2009 · 99 videos analyzed · sweep ongoing</p>
+    <p style="margin-top:6px">Built with <a href="https://github.com/facebookresearch/tribev2" target="_blank">tribe-local</a> running on a P4000 GPU. Raw predictions: (T, 20484) fsaverage5 cortical surface vertices per video.</p>
+  </footer>
+
+</div>
+
+<script>
+const DATA = {
+  "n": 99,
+  "group_diff": {
+    "visual_early":    {"high": -0.0928, "low": -0.0829, "diff": -0.0099},
+    "visual_ventral":  {"high":  0.0789, "low":  0.0410, "diff":  0.0379},
+    "visual_dorsal":   {"high":  0.0199, "low":  0.0041, "diff":  0.0158},
+    "motion_mt":       {"high":  0.3122, "low":  0.2259, "diff":  0.0862},
+    "face_ffa":        {"high":  0.2796, "low":  0.1850, "diff":  0.0946},
+    "place_ppa":       {"high": -0.0039, "low": -0.0097, "diff":  0.0058},
+    "language_sts":    {"high":  0.1685, "low":  0.0935, "diff":  0.0750},
+    "auditory":        {"high":  0.1247, "low":  0.0839, "diff":  0.0407},
+    "dmn_precuneus":   {"high": -0.0887, "low": -0.0897, "diff":  0.0010},
+    "dmn_mpfc":        {"high": -0.0208, "low": -0.0252, "diff":  0.0044},
+    "attention":       {"high": -0.0177, "low": -0.0164, "diff": -0.0013},
+    "broca_language":  {"high":  0.0097, "low": -0.0001, "diff":  0.0099}
+  },
+  "top": [
+    {"id":"7602018768474213646","dur":5,"compl":76,"face":0.235,"motion":0.242,"speech":0.161,"dmn":-0.200,"likes":22},
+    {"id":"7515846739362893086","dur":11,"compl":64,"face":0.209,"motion":0.230,"speech":0.274,"dmn":-0.022,"likes":10560},
+    {"id":"7559991058684300574","dur":9,"compl":61,"face":0.389,"motion":0.468,"speech":0.108,"dmn":-0.113,"likes":3371},
+    {"id":"7552208746794011934","dur":8,"compl":60,"face":0.391,"motion":0.470,"speech":0.046,"dmn":-0.097,"likes":483},
+    {"id":"7633790385235430687","dur":9,"compl":57,"face":0.220,"motion":0.244,"speech":0.249,"dmn":-0.122,"likes":1953},
+    {"id":"7612025178251349279","dur":8,"compl":56,"face":0.338,"motion":0.366,"speech":0.242,"dmn":-0.053,"likes":423},
+    {"id":"7633789720446766367","dur":7,"compl":53,"face":0.278,"motion":0.307,"speech":0.230,"dmn":-0.075,"likes":191},
+    {"id":"7611917231936654622","dur":6,"compl":52,"face":0.324,"motion":0.351,"speech":0.210,"dmn":-0.130,"likes":522},
+    {"id":"7612876443080592670","dur":7,"compl":50,"face":0.375,"motion":0.426,"speech":0.139,"dmn":-0.100,"likes":6435},
+    {"id":"7600984382559505695","dur":7,"compl":48,"face":0.425,"motion":0.466,"speech":0.158,"dmn":-0.051,"likes":1654}
+  ],
+  "bottom": [
+    {"id":"7560003795946638623","dur":12,"compl":12,"face":0.061,"motion":0.153,"speech":0.005,"dmn":-0.045,"likes":25},
+    {"id":"7561492682430811423","dur":8,"compl":11,"face":0.070,"motion":0.093,"speech":0.232,"dmn":-0.098,"likes":20},
+    {"id":"7623854670464699678","dur":11,"compl":8,"face":-0.192,"motion":-0.153,"speech":-0.240,"dmn":-0.184,"likes":24},
+    {"id":"7516963738247810334","dur":11,"compl":7,"face":0.071,"motion":0.062,"speech":-0.081,"dmn":-0.104,"likes":44},
+    {"id":"7556715516782497037","dur":11,"compl":6,"face":0.478,"motion":0.489,"speech":0.185,"dmn":-0.012,"likes":8},
+    {"id":"7515554568239877407","dur":11,"compl":5,"face":0.203,"motion":0.190,"speech":0.117,"dmn":-0.082,"likes":30},
+    {"id":"7633606137266375966","dur":10,"compl":4,"face":0.362,"motion":0.401,"speech":0.132,"dmn":-0.166,"likes":2},
+    {"id":"7546013286878154014","dur":11,"compl":4,"face":0.134,"motion":0.172,"speech":-0.102,"dmn":-0.096,"likes":9}
+  ]
+};
+
+// ── bar chart ──────────────────────────────────────────────────────────────
+const BAR_LABELS = {
+  face_ffa:       "Face recognition (FFA)",
+  motion_mt:      "Motion detection (MT+)",
+  language_sts:   "Speech processing (STS)",
+  auditory:       "Auditory cortex",
+  visual_ventral: "Ventral visual stream",
+  visual_dorsal:  "Dorsal visual stream",
+  broca_language: "Language production (Broca)",
+  dmn_precuneus:  "Mind-wandering / DMN",
+  place_ppa:      "Scene recognition (PPA)",
+};
+const BAR_ORDER = ["face_ffa","motion_mt","language_sts","auditory","visual_ventral","visual_dorsal","broca_language","dmn_precuneus","place_ppa"];
+
+const container = document.getElementById("bars-container");
+const maxVal = 0.35;
+
+BAR_ORDER.forEach(key => {
+  const d = DATA.group_diff[key];
+  if (!d) return;
+  const pctH = Math.max(0, d.high) / maxVal * 100;
+  const pctL = Math.max(0, d.low) / maxVal * 100;
+  const diffPct = d.high > 0 && d.low > 0 ? Math.round((d.high - d.low) / d.low * 100) : null;
+  const row = document.createElement("div");
+  row.className = "bar-row";
+  row.innerHTML = `
+    <div class="bar-label">
+      <span class="name">${BAR_LABELS[key] || key}</span>
+      ${diffPct !== null ? `<span class="bar-diff">${diffPct > 0 ? '+' : ''}${diffPct}% gap</span>` : ''}
+    </div>
+    <div class="pair">
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">high-retention</div>
+        <div class="bar-track"><div class="bar-fill high" style="width:${pctH.toFixed(1)}%"></div></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">low-retention</div>
+        <div class="bar-track"><div class="bar-fill low" style="width:${pctL.toFixed(1)}%"></div></div>
+      </div>
+    </div>
+  `;
+  container.appendChild(row);
+});
+
+// ── score bar helper ───────────────────────────────────────────────────────
+function scoreBar(val) {
+  const MAX = 0.5;
+  const pct = Math.abs(val) / MAX * 80;
+  const neg = val < 0;
+  return `<div class="score-bar">
+    <div class="score-pip ${neg ? 'neg' : ''}" style="width:${Math.max(2,pct).toFixed(0)}px"></div>
+    <span class="score-num">${val > 0 ? '+' : ''}${val.toFixed(3)}</span>
+  </div>`;
+}
+
+// ── table render ───────────────────────────────────────────────────────────
+function fillTable(tableId, rows, badgeClass, badgeLabel) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  rows.forEach(v => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="vid-id"><a href="https://www.tiktok.com/@thecybersecrets/video/${v.id}" target="_blank">${v.id.slice(-8)}…</a></td>
+      <td>${v.dur}s</td>
+      <td><span class="badge ${badgeClass}">${v.compl}%</span></td>
+      <td>${scoreBar(v.face)}</td>
+      <td>${scoreBar(v.motion)}</td>
+      <td>${scoreBar(v.speech)}</td>
+      <td>${v.likes.toLocaleString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+fillTable("top-table", DATA.top, "top", "top");
+fillTable("bot-table", DATA.bottom, "bot", "low");
+</script>
+</body>
+</html>

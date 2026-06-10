@@ -128,10 +128,10 @@
 
     <h2>Infrastructure</h2>
     <ul>
-      <li><strong>ath-ms-7a72</strong> — Quadro P4000 8GB, 31GB RAM. Runs TRIBE v2 inference. Python 3.12 venv at <code>~/tribe-local/.venv</code>, Torch 2.6.0+cu124.</li>
-      <li><strong>lil-blue</strong> — GTX 1060 3GB. Runs Parakeet TDT 0.6B ASR (transcription). Host alias <code>lil-blue</code>.</li>
-      <li><strong>ath-MS-7A73</strong> (localhost) — GTX 1060 6GB. Development, analysis, ComfyUI img2img (port 8188, DreamShaper 8).</li>
-      <li>All scripts live at <code>/media/ath/video/tribe-local/scripts/</code>. Outputs at <code>/media/ath/video/tribe-local/outputs/</code>.</li>
+      <li><strong>gpu-server</strong> — Quadro P4000 8GB, 31GB RAM. Runs TRIBE v2 inference. Python 3.12 venv at <code>~/tribe-local/.venv</code>, Torch 2.6.0+cu124.</li>
+      <li><strong>asr-machine</strong> — GTX 1060 3GB. Runs Parakeet TDT 0.6B ASR (transcription). Host alias <code>asr-machine</code>.</li>
+      <li><strong>dev-machine</strong> (localhost) — GTX 1060 6GB. Development, analysis, ComfyUI img2img (port 8188, DreamShaper 8).</li>
+      <li>All scripts live at <code>tribe-local/scripts/</code>. Outputs at <code>tribe-local/outputs/</code>.</li>
     </ul>
 
     <h2>Current sweep status</h2>
@@ -140,7 +140,7 @@
       <div class="num-card"><div class="val">696</div><div class="lbl">total videos</div></div>
       <div class="num-card"><div class="val">~400h</div><div class="lbl">ETA at ~50s/TR</div></div>
     </div>
-    <p>Sweep runs continuously on 7a72. Check progress: <code>tail -20 outputs/sweep_cybersecrets_run.log</code>. State: <code>outputs/sweep_cybersecrets/state.json</code>. Per-video predictions: <code>outputs/sweep_cybersecrets/npy/*.npy</code>.</p>
+    <p>Sweep runs continuously. Check progress: <code>tail -20 outputs/sweep_cybersecrets_run.log</code>. State: <code>outputs/sweep_cybersecrets/state.json</code>. Per-video predictions: <code>outputs/sweep_cybersecrets/npy/*.npy</code>.</p>
     <p>Resume if stopped:</p>
     <pre><code>nohup python3 scripts/sweep_cybersecrets.py --cap 60 --no-rsync \
   > outputs/sweep_cybersecrets_run.log 2>&1 &</code></pre>
@@ -201,7 +201,7 @@
       <tr><td><code>brain_probe_iterate.py</code></td><td>Chained loop. Args: <code>--video ID</code>, <code>--all</code>, <code>--iters N</code>, <code>--target-profile path</code>.</td></tr>
       <tr><td><code>sweep_target_channel.py</code></td><td>Download + TRIBE-sweep any TikTok handle. Args: <code>--handle</code>, <code>--n</code>, <code>--cap</code>.</td></tr>
       <tr><td><code>build_target_profile.py</code></td><td>Build mean FG target vector from sweep output. Args: <code>--handle</code>, <code>--top-frac</code>.</td></tr>
-      <tr><td><code>run_local_demo.py</code></td><td>Single-video TRIBE inference on 7a72. Used internally by all sweep scripts via SSH.</td></tr>
+      <tr><td><code>run_local_demo.py</code></td><td>Single-video TRIBE inference. Used internally by all sweep scripts via SSH.</td></tr>
     </table>
 
     <h2>Functional groups (12 regions)</h2>
@@ -256,15 +256,15 @@ Cross-referenced with per-second audience retention curves from TikTok Creator A
 
 INFRASTRUCTURE
 --------------
-- ath-ms-7a72: Quadro P4000 8GB, 31GB RAM. TRIBE v2 inference. Python 3.12 venv at ~/tribe-local/.venv, Torch 2.6.0+cu124.
-- lil-blue: GTX 1060 3GB. Parakeet TDT 0.6B ASR (transcription). Host alias: lil-blue.
-- ath-MS-7A73 (localhost): GTX 1060 6GB. Dev, analysis, ComfyUI img2img (port 8188, DreamShaper 8).
-- Scripts: /media/ath/video/tribe-local/scripts/
-- Outputs: /media/ath/video/tribe-local/outputs/
+- gpu-server: Quadro P4000 8GB, 31GB RAM. TRIBE v2 inference. Python 3.12 venv at ~/tribe-local/.venv, Torch 2.6.0+cu124.
+- asr-machine: GTX 1060 3GB. Parakeet TDT 0.6B ASR (transcription). Host alias: asr-machine.
+- dev-machine (localhost): GTX 1060 6GB. Dev, analysis, ComfyUI img2img (port 8188, DreamShaper 8).
+- Scripts: tribe-local/scripts/
+- Outputs: tribe-local/outputs/
 
 CURRENT SWEEP STATUS
 --------------------
-112 / 696 videos scored. Full dataset ETA ~400h at ~50s/TR throughput on 7a72.
+112 / 696 videos scored. Full dataset ETA ~400h at ~50s/TR throughput.
 Check: tail -20 outputs/sweep_cybersecrets_run.log
 State: outputs/sweep_cybersecrets/state.json
 Predictions: outputs/sweep_cybersecrets/npy/*.npy
@@ -347,7 +347,7 @@ brain_probe_pipeline.py   Peak frame → ComfyUI → TRIBE → delta (single ste
 brain_probe_iterate.py    Chained loop. Args: --video ID | --all | --iters N | --target-profile path
 sweep_target_channel.py   Download + TRIBE-sweep any TikTok handle
 build_target_profile.py   Build mean FG target vector. Args: --handle, --top-frac
-run_local_demo.py         Single-video TRIBE inference on 7a72 (called via SSH by sweep scripts)
+run_local_demo.py         Single-video TRIBE inference (called via SSH by sweep scripts)
 
 FUNCTIONAL GROUPS (12 REGIONS)
 -------------------------------
